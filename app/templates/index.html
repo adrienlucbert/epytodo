@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<head>
-    <title>EPyTodo</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/css/index.css">
-    <link rel="icon" href="static/img/favicon.ico">
-</head>
-<body>
-    <h1>{{}}</h1>
-</body>
+{% extends "base.html" %}
+{% set page_title = "Accueil" %}
+
+{% block content %}
+    <h1>Hello!</h1>
+    {% if not session.username %}
+    <p>Please log in</p>
+    {% else %}
+    <p>You are logged as {{ session.username }}!</p>
+    {% endif %}
+{% endblock %}
