@@ -253,7 +253,7 @@ class Task:
                              % (title, begin, end, status))
             self.sql.commit()
             self.sql.execute("SELECT LAST_INSERT_ID()")
-            self.id = self.sql.fetchone()[0]
+            self.id = self.sql.fetchone()["LAST_INSERT_ID()"]
         except (Exception) as e:
             print("Task.create: ")
             print(e)

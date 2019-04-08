@@ -38,6 +38,7 @@ class UserController(Controller):
             return None
         res = {}
         status = self.user.register(username, passwd)
+        self.sql.close()
         if status == 0:
             res["result"] = "account created"
         elif status == 1:
@@ -51,6 +52,7 @@ class UserController(Controller):
             status = 0
         else:
             status = self.user.login(username, passwd)
+        self.sql.close()
         res = {}
         if status == 0:
             res["result"] = "signin successful"
@@ -71,6 +73,7 @@ class UserController(Controller):
         if self.user.logged == False:
             return self.notLoggedIn()
         status, res = self.user.getInfo()
+        self.sql.close()
         if status == 0:
             return json.dumps(res)
         else:
@@ -85,6 +88,7 @@ class TaskController(Controller):
             return self.notLoggedIn()
         else:
             ret = self.task.create(title, begin, end, status)
+        self.sql.close()
         if ret == False:
             return self.internalError()
         res = {}
@@ -97,7 +101,8 @@ class TaskController(Controller):
         elif self.user.hasTask(id) == False:
             return self.taskIdInvalid()
         else:
-            status = self.task.delete()
+            status = self.task.delete(id)
+        self.sql.close()
         if status == False:
             return self.taskIdInvalid()
         res = {}
@@ -111,6 +116,7 @@ class TaskController(Controller):
             return self.taskIdInvalid()
         else:
             status = self.task.update(title, begin, end, status)
+        self.sql.close()
         if status == False:
             return self.internalError()
         res = {}
