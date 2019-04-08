@@ -61,21 +61,14 @@ class SqlConnect:
         return self.cursor.fetchall()
 
 class User:
-    def __init__(self, username=None, id=None):
+    def __init__(self, sql=None, username=None, id=None):
         self.id = id
         self.name = username
-        if self.name != None and self.id != None:
-            self.logged = True
+        self.logged = username != None
+        if sql == None:
+            self.sql = SqlConnect()
         else:
-            self.logged = False
-        session["logged"] = self.logged
-        self.sql = SqlConnect()
-        if "logged" in session and session["logged"]:
-            self.logged = True
-        if "userid" in session:
-            self.id = session["userid"]
-        if "username" in session:
-            self.name = session["username"]
+            self.sql = sql
 
     def register(self, username, passwd):
         if self.logged or username == None or passwd == None:
@@ -106,10 +99,11 @@ class User:
             self.name = username
             self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
                              % (username, passwd))
-            self.logged = self.sql.fetchone()[0] > 0
-            if self.logged == False:
+            if self.sql.fetchone()[0] > 0:
+                self.logged = True
+            else:
                 self.name = None
-                return False
+                return 1
             self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
                              % (self.name))
             self.id = self.sql.fetchone()[0]
@@ -118,10 +112,10 @@ class User:
             print(e)
             self.name = None
             self.id = None
-            return False
+            return 2
         session["username"] = self.name
         session["id"] = self.id
-        return self.logged
+        return 0
 
     def logout(self):
         if self.logged:
@@ -129,9 +123,9 @@ class User:
             session.pop("logged", None)
             session.pop("username", None)
             session.pop("id", None)
-            return True
+            return 0
         else:
-            return False
+            return 1
 
     def createTask(self, title=None, begin=None, end=None, status=None):
         if self.logged == False:
