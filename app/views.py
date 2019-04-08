@@ -39,11 +39,13 @@ def route_view_user():
 
 @app.route('/user/task', methods=['GET'])
 def route_view_all_tasks():
-    return render_template('index.html')
+    controller = UserController()
+    return controller.getAllTasks()
 
 @app.route('/user/task/<int:task_id>', methods=['GET'])
 def route_view_task(task_id):
-    return render_template('index.html')
+    controller = TaskController()
+    return controller.info(task_id)
 
 @app.route('/user/task/<int:task_id>', methods=['POST'])
 def route_update_task(task_id):

@@ -72,9 +72,23 @@ class UserController(Controller):
     def info(self):
         if self.user.logged == False:
             return self.notLoggedIn()
-        status, res = self.user.getInfo()
+        status, userInfo = self.user.getInfo()
         self.sql.close()
+        res = {}
         if status == 0:
+            res["result"] = userInfo
+            return json.dumps(res)
+        else:
+            return self.internalError()
+
+    def getAllTasks(self):
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        res = {}
+        status, tasks = self.user.getAllTasks()
+        if status == 0:
+            res["result"] = {}
+            res["result"]["tasks"] = tasks
             return json.dumps(res)
         else:
             return self.internalError()
@@ -95,13 +109,13 @@ class TaskController(Controller):
         res['result'] = "new task added"
         return json.dumps(res)
 
-    def delete(self, id=None):
+    def delete(self, task_id=None):
         if self.user.logged == False:
             return self.notLoggedIn()
-        elif self.user.hasTask(id) == False:
+        elif self.user.hasTask(task_id) == False:
             return self.taskIdInvalid()
         else:
-            status = self.task.delete(id)
+            status = self.task.delete(task_id)
         self.sql.close()
         if status == False:
             return self.taskIdInvalid()
@@ -109,10 +123,10 @@ class TaskController(Controller):
         res['result'] = "task deleted"
         return json.dumps(res)
 
-    def update(self, title=None, begin=None, end=None, status=None):
+    def update(self, task_id=None, title=None, begin=None, end=None, status=None):
         if self.user.logged == False:
             return self.notLoggedIn()
-        elif self.user.hasTask(id) == False:
+        elif self.user.hasTask(task_id) == False:
             return self.taskIdInvalid()
         else:
             status = self.task.update(title, begin, end, status)
@@ -122,3 +136,18 @@ class TaskController(Controller):
         res = {}
         res['result'] = "update done"
         return json.dumps(res)
+
+    def info(self, task_id):
+        res = {}
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        elif self.user.hasTask(task_id) == False:
+            return self.taskIdInvalid()
+        else:
+            status, task = self.user.getTaskById(task_id)
+        self.sql.close()
+        if status == 0:
+            res["result"] = task.info()
+            return json.dumps(res)
+        else:
+            return self.internalError()

@@ -164,15 +164,15 @@ class User:
         return True
 
     def hasTask(self, task_id=None):
-        task = self.getTaskById(task_id)
-        if task == False:
-            return False
-        else:
+        status = self.getTaskById(task_id)[0]
+        if status == 0:
             return True
+        else:
+            return False
 
     def deleteTaskById(self, task_id):
-        task = self.getTaskById(task_id)
-        if task == False:
+        status, task = self.getTaskById(task_id)
+        if status != 0:
             return False
         try:
             self.sql.open()
@@ -186,34 +186,34 @@ class User:
         return task.delete(task_id)
 
     def updateTaskById(self, task_id, title=None, begin=None, end=None, status=None):
-        task = self.getTaskById(task_id)
-        if task == None:
+        status, task = self.getTaskById(task_id)
+        if status != 0:
             return False
         return task.update(task_id, title, begin, end, status)
 
     def getTaskById(self, task_id=None):
         if self.logged == False or task_id == None:
-            return False
+            return 2, None
         try:
             self.sql.open()
             self.sql.execute("SELECT COUNT(1) FROM user_has_task WHERE fk_task_id='%d' AND fk_user_id='%d'"
                              % (task_id, self.id))
             if self.sql.fetchone()["COUNT(1)"] <= 0:
-                return False
+                return 1, None
             self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
                              % (task_id))
             res = self.sql.fetchone()
-            return Task(self.sql, res["id"], res["title"], res["begin"], res["end"], res["status"])
+            return 0, Task(self.sql, res["task_id"], res["title"], res["begin"], res["end"], res["status"])
         except (Exception) as e:
             print("User.getTaskById: ")
             print(e)
-            return False
+            return 2, None
 
     def getAllTasks(self):
         if self.logged == False:
-            return False
+            return 2, None
         try:
-            tasks = []
+            tasks = {}
             self.sql.open()
             self.sql.execute("SELECT fk_task_id FROM user_has_task WHERE fk_user_id='%d'"
                              % (self.id))
@@ -221,12 +221,17 @@ class User:
             for task_id in tasks_ids:
                 self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
                     % (task_id["fk_task_id"]))
-                tasks.append(self.sql.fetchone())
-            return tasks
+                task = self.sql.fetchone()
+                tasks[task["task_id"]] = {}
+                tasks[task["task_id"]]["title"] = task["title"]
+                tasks[task["task_id"]]["begin"] = task["begin"]
+                tasks[task["task_id"]]["end"] = task["end"]
+                tasks[task["task_id"]]["status"] = task["status"]
+            return 0, tasks
         except (Exception) as e:
             print("User.getAllTasks: ")
             print(e)
-            return False
+            return 2, None
 
 class Task:
     def __init__(self, sql=None, id=None, title=None, begin=None, end=None, status=None):
@@ -295,3 +300,13 @@ class Task:
             print(e)
             return False
         return True
+
+    def info(self):
+        if self.id == None:
+            return None
+        res = {}
+        res["title"] = self.title
+        res["begin"] = self.begin
+        res["end"] = self.end
+        res["status"] = self.status
+        return res
