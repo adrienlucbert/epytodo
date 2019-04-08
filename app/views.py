@@ -34,7 +34,8 @@ def route_signout():
 
 @app.route('/user', methods=['GET'])
 def route_view_user():
-    return render_template('index.html')
+    controller = UserController()
+    return controller.info()
 
 @app.route('/user/task', methods=['GET'])
 def route_view_all_tasks():

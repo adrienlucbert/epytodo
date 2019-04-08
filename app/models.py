@@ -25,13 +25,15 @@ class SqlConnect:
                 self.link = sql.connect(host=app.config["DATABASE_HOST"],
                                         user=app.config["DATABASE_USER"],
                                         passwd=app.config["DATABASE_PASS"],
-                                        db=app.config["DATABASE_NAME"]
+                                        db=app.config["DATABASE_NAME"],
+                                        cursorclass=sql.cursors.DictCursor
                                         )
             else:
                 self.link = sql.connect(unix_socket=app.config["DATABASE_SOCK"],
                                         user=app.config["DATABASE_USER"],
                                         passwd=app.config["DATABASE_PASS"],
-                                        db=app.config["DATABASE_NAME"]
+                                        db=app.config["DATABASE_NAME"],
+                                        cursorclass=sql.cursors.DictCursor
                                         )
             self.cursor = self.link.cursor()
             self.connected = True
@@ -78,13 +80,13 @@ class User:
             self.name = username
             self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
                              % (username, passwd))
-            if self.sql.fetchone()[0] > 0:
+            if self.sql.fetchone()["COUNT(1)"] > 0:
                 return 1
             self.sql.execute("INSERT INTO user (username, password) VALUES ('%s', '%s')"
                              % (self.name, passwd))
             self.sql.commit()
             self.sql.execute("SELECT LAST_INSERT_ID()")
-            self.id = self.sql.fetchone()[0]
+            self.id = self.sql.fetchone()["LAST_INSERT_ID()"]
             self.logged = True
         except (Exception) as e:
             print("User.register: ")
@@ -103,14 +105,14 @@ class User:
             self.name = username
             self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
                              % (username, passwd))
-            if self.sql.fetchone()[0] > 0:
+            if self.sql.fetchone()["COUNT(1)"] > 0:
                 self.logged = True
             else:
                 self.name = None
                 return 1
             self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
                              % (self.name))
-            self.id = self.sql.fetchone()[0]
+            self.id = self.sql.fetchone()["user_id"]
         except (Exception) as e:
             print("User.login: ")
             print(e)
@@ -130,6 +132,19 @@ class User:
             return 0
         else:
             return 1
+
+    def getInfo(self):
+        if self.logged:
+            try:
+                self.sql.open()
+                self.sql.execute("SELECT username, password FROM user WHERE user_id='%d' LIMIT 1"
+                                 % (self.id))
+                res = self.sql.fetchone()
+                return 0, res
+            except (Exception) as e:
+                print("User.getInfo: ")
+                print(e)
+                return 2, None
 
     def createTask(self, title=None, begin=None, end=None, status=None):
         if self.logged == False:
@@ -183,12 +198,12 @@ class User:
             self.sql.open()
             self.sql.execute("SELECT COUNT(1) FROM user_has_task WHERE fk_task_id='%d' AND fk_user_id='%d'"
                              % (task_id, self.id))
-            if self.sql.fetchone()[0] <= 0:
+            if self.sql.fetchone()["COUNT(1)"] <= 0:
                 return False
             self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
                              % (task_id))
             res = self.sql.fetchone()
-            return Task(self.sql, res[0], res[1], res[2], res[3], res[4])
+            return Task(self.sql, res["id"], res["title"], res["begin"], res["end"], res["status"])
         except (Exception) as e:
             print("User.getTaskById: ")
             print(e)
@@ -205,7 +220,7 @@ class User:
             tasks_ids = list(self.sql.fetchall())
             for task_id in tasks_ids:
                 self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
-                    % (task_id[0]))
+                    % (task_id["fk_task_id"]))
                 tasks.append(self.sql.fetchone())
             return tasks
         except (Exception) as e:

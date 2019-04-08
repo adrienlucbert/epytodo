@@ -67,6 +67,15 @@ class UserController(Controller):
             res["result"] = "signout successful"
             return json.dumps(res)
 
+    def info(self):
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        status, res = self.user.getInfo()
+        if status == 0:
+            return json.dumps(res)
+        else:
+            return self.internalError()
+
 class TaskController(Controller):
     def __init__(self):
         super().__init__()
