@@ -72,10 +72,38 @@ class TaskController(Controller):
         super().__init__()
 
     def create(self, title=None, begin=None, end=None, status=None):
-        return None
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        else:
+            ret = self.task.create(title, begin, end, status)
+        if ret == False:
+            return self.internalError()
+        res = {}
+        res['result'] = "new task added"
+        return json.dumps(res)
 
     def delete(self, id=None):
-        return None
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        elif self.user.hasTask(id) == False:
+            return self.taskIdInvalid()
+        else:
+            status = self.task.delete()
+        if status == False:
+            return self.taskIdInvalid()
+        res = {}
+        res['result'] = "task deleted"
+        return json.dumps(res)
 
     def update(self, title=None, begin=None, end=None, status=None):
-        return None
+        if self.user.logged == False:
+            return self.notLoggedIn()
+        elif self.user.hasTask(id) == False:
+            return self.taskIdInvalid()
+        else:
+            status = self.task.update(title, begin, end, status)
+        if status == False:
+            return self.internalError()
+        res = {}
+        res['result'] = "update done"
+        return json.dumps(res)
