@@ -183,13 +183,13 @@ class User:
             print("User.deleteTask: ")
             print(e)
             return False
-        return task.delete()
+        return task.delete(task_id)
 
-    def updateTaskById(self, id=None, title=None, begin=None, end=None, status=None):
-        task = self.getTaskById(id)
+    def updateTaskById(self, task_id, title=None, begin=None, end=None, status=None):
+        task = self.getTaskById(task_id)
         if task == None:
             return False
-        return task.update(title, begin, end, status)
+        return task.update(task_id, title, begin, end, status)
 
     def getTaskById(self, task_id=None):
         if self.logged == False or task_id == None:
@@ -260,12 +260,12 @@ class Task:
             return False
         return True
 
-    def delete(self):
-        if self.id == None:
+    def delete(self, task_id):
+        if task_id == None:
             return False
         try:
             self.sql.execute("DELETE FROM task WHERE task_id=%d"
-                             % (self.id))
+                             % (task_id))
             self.sql.commit()
         except (Exception) as e:
             print("Task.delete: ")
@@ -273,8 +273,8 @@ class Task:
             return False
         return True
 
-    def update(self, title=None, begin=None, end=None, status=None):
-        if self.id == None:
+    def update(self, task_id, title=None, begin=None, end=None, status=None):
+        if task_id == None:
             return False
         to_update = {}
         try:
@@ -288,7 +288,7 @@ class Task:
                 to_update["status"] = status
             for key, val in to_update:
                 self.sql.execute("UPDATE task SET %s='%s' WHERE task_id=%d"
-                                 % (key, val, self.id))
+                                 % (key, val, task_id))
             self.sql.commit()
         except (Exception) as e:
             print("Task.update: ")

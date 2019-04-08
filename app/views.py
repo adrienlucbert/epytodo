@@ -41,18 +41,29 @@ def route_view_user():
 def route_view_all_tasks():
     return render_template('index.html')
 
-@app.route('/user/task/<id>', methods=['GET'])
-def route_view_task():
+@app.route('/user/task/<int:task_id>', methods=['GET'])
+def route_view_task(task_id):
     return render_template('index.html')
 
-@app.route('/user/task/<id>', methods=['POST'])
-def route_update_task():
-    return render_template('index.html')
+@app.route('/user/task/<int:task_id>', methods=['POST'])
+def route_update_task(task_id):
+    title = request.form.get("title")
+    begin = request.form.get("begin")
+    end = request.form.get("end")
+    status = request.form.get("status")
+    controller = TaskController()
+    return controller.task.update(task_id, title, begin, end, status)
 
 @app.route('/user/task/add', methods=['POST'])
 def route_task_add():
-    return render_template('index.html')
+    title = request.form.get("title")
+    begin = request.form.get("begin")
+    end = request.form.get("end")
+    status = request.form.get("status")
+    controller = TaskController()
+    return controller.task.create(title, begin, end, status)
 
-@app.route('/user/task/del/<id>', methods=['POST'])
-def route_task_del():
-    return render_template('index.html')
+@app.route('/user/task/del/<int:task_id>', methods=['POST'])
+def route_task_del(task_id):
+    controller = TaskController()
+    return controller.task.delete(task_id)
