@@ -15,10 +15,12 @@ class SqlConnect:
         self.link = None
         self.cursor = None
 
-    def open(self):
+    def open(self, restart=False):
         try:
-            if self.connected:
+            if restart == True and self.connected == True:
                 self.close()
+            elif restart == False and self.connected == True:
+                return True
             if app.config["DATABASE_SOCK"] == None:
                 self.link = sql.connect(host=app.config["DATABASE_HOST"],
                                         user=app.config["DATABASE_USER"],
@@ -34,6 +36,7 @@ class SqlConnect:
             self.cursor = self.link.cursor()
             self.connected = True
         except (Exception) as e:
+            print("SqlConnect.open: ")
             print(e)
             return False
         return True
@@ -78,17 +81,16 @@ class User:
         if self.logged or username == None or passwd == None:
             return False
         try:
-            self.name = username
             self.sql.open()
+            self.name = username
             self.sql.execute("INSERT INTO user (username, password) VALUES ('%s', '%s')"
                              % (self.name, passwd))
             self.sql.commit()
-            self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
-                             % (self.name))
+            self.sql.execute("SELECT LAST_INSERT_ID()")
             self.id = self.sql.fetchone()[0]
             self.logged = True
-            self.sql.close()
         except (Exception) as e:
+            print("User.register: ")
             print(e)
             return False
         session["username"] = self.name
@@ -100,8 +102,8 @@ class User:
         if self.logged or username == None or passwd == None:
             return False
         try:
-            self.name = username
             self.sql.open()
+            self.name = username
             self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
                              % (username, passwd))
             self.logged = self.sql.fetchone()[0] > 0
@@ -111,8 +113,8 @@ class User:
             self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
                              % (self.name))
             self.id = self.sql.fetchone()[0]
-            self.sql.close()
         except (Exception) as e:
+            print("User.login: ")
             print(e)
             self.name = None
             self.id = None
@@ -131,6 +133,44 @@ class User:
         else:
             return False
 
+    def createTask(self, title=None, begin=None, end=None, status=None):
+        if self.logged == False:
+            return False
+        task = Task(self.sql)
+        if task.create(title, begin, end, status) == False and task.id != None:
+            return False
+        try:
+            self.sql.open()
+            self.sql.execute("INSERT INTO user_has_task (fk_user_id, fk_task_id) VALUES (%d, %d)"
+                             % (self.id, task.id))
+            self.sql.commit()
+        except (Exception) as e:
+            print("User.createTask: ")
+            print(e)
+            return False
+        return True
+
+    def deleteTaskById(self, task_id):
+        task = self.getTaskById(task_id)
+        if task == False:
+            return False
+        try:
+            self.sql.open()
+            self.sql.execute("DELETE FROM user_has_task WHERE fk_task_id=%d"
+                             % (task.id))
+            self.sql.commit()
+        except (Exception) as e:
+            print("User.deleteTask: ")
+            print(e)
+            return False
+        return task.delete()
+
+    def updateTaskById(self, id=None, title=None, begin=None, end=None, status=None):
+        task = self.getTaskById(id)
+        if task == None:
+            return False
+        return task.update(title, begin, end, status)
+
     def getTaskById(self, task_id=None):
         if self.logged == False or task_id == None:
             return False
@@ -142,10 +182,10 @@ class User:
                 return False
             self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
                              % (task_id))
-            task = self.sql.fetchone()
-            self.sql.close()
-            return task
+            res = self.sql.fetchone()
+            return Task(self.sql, res[0], res[1], res[2], res[3], res[4])
         except (Exception) as e:
+            print("User.getTaskById: ")
             print(e)
             return False
 
@@ -153,36 +193,49 @@ class User:
         if self.logged == False:
             return False
         try:
+            tasks = []
             self.sql.open()
-            self.sql.execute("SELECT * FROM task WHERE user_id='%d'"
+            self.sql.execute("SELECT fk_task_id FROM user_has_task WHERE fk_user_id='%d'"
                              % (self.id))
-            tasks = list(self.sql.fetchall())
-            self.sql.close()
+            tasks_ids = list(self.sql.fetchall())
+            for task_id in tasks_ids:
+                self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
+                    % (task_id[0]))
+                tasks.append(self.sql.fetchone())
             return tasks
         except (Exception) as e:
+            print("User.getAllTasks: ")
             print(e)
             return False
 
 class Task:
-    def __init__(self, sql=None):
+    def __init__(self, sql=None, id=None, title=None, begin=None, end=None, status=None):
         if sql == None:
             self.sql = SqlConnect()
         else:
             self.sql = sql
-        self.id = None
-        self.title = None
-        self.begin = None
-        self.end = None
-        self.status = "not started"
+        self.id = id
+        self.title = title
+        self.begin = begin
+        self.end = end
+        self.status = status
+        if self.status == None:
+            self.status = "not started"
     
     def create(self, title=None, begin=None, end=None, status=None):
         if title == None or begin == None or end == None:
             return False
         try:
-            self.sql.execute("INSERT INTO task (title, begin, end, status) VALUES ('%s', '%s', '%s', '%s')"
+            if status == None:
+                status = "not started"
+            self.sql.open()
+            self.sql.execute("INSERT INTO task (title,begin,end,status) VALUES ('%s', '%s', '%s', '%s')"
                              % (title, begin, end, status))
-            self.sql.cursor.commit()
+            self.sql.commit()
+            self.sql.execute("SELECT LAST_INSERT_ID()")
+            self.id = self.sql.fetchone()[0]
         except (Exception) as e:
+            print("Task.create: ")
             print(e)
             return False
         return True
@@ -193,8 +246,9 @@ class Task:
         try:
             self.sql.execute("DELETE FROM task WHERE task_id=%d"
                              % (self.id))
-            self.sql.cursor.commit()
+            self.sql.commit()
         except (Exception) as e:
+            print("Task.delete: ")
             print(e)
             return False
         return True
@@ -215,8 +269,9 @@ class Task:
             for key, val in to_update:
                 self.sql.execute("UPDATE task SET %s='%s' WHERE task_id=%d"
                                  % (key, val, self.id))
-            self.sql.cursor.commit()
+            self.sql.commit()
         except (Exception) as e:
+            print("Task.update: ")
             print(e)
             return False
         return True

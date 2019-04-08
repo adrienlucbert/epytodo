@@ -5,13 +5,12 @@
 ## views
 ##
 
-from flask import Flask, session, render_template
+from flask import Flask, session, render_template, json
 from app.models import User
 from app import app
 
 @app.route('/', methods=['GET'])
 def route_home():
-    user = User(session.get("username"), session.get("id"))
     return render_template('index.html')
 
 @app.route('/register', methods=['POST'])

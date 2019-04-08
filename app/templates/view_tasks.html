@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% set page_title = "View user tasks" %}
+
+{% block content %}
+    {% for task in tasks %}
+        <span>{{ task[1] }} ({{ task[0] }}) - {{ task[4] }}</span>
+        <br>
+        <span>{{ task[2] }} - {{ task[3] }}</span>
+        <br>
+        <br>
+    {% endfor %}
+{% endblock %}
