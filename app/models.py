@@ -81,15 +81,19 @@ class User:
             self.name = username
             self.sql.open()
             self.sql.execute("INSERT INTO user (username, password) VALUES ('%s', '%s')"
-                                    % (self.name, passwd))
+                             % (self.name, passwd))
             self.sql.commit()
             self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
-                                    % (self.name))
+                             % (self.name))
             self.id = self.sql.fetchone()[0]
+            self.logged = True
             self.sql.close()
         except (Exception) as e:
             print(e)
             return False
+        session["username"] = self.name
+        session["id"] = self.id
+        session["logged"] = self.logged
         return True
 
     def login(self, username=None, passwd=None):
@@ -99,13 +103,13 @@ class User:
             self.name = username
             self.sql.open()
             self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
-                                    % (username, passwd))
+                             % (username, passwd))
             self.logged = self.sql.fetchone()[0] > 0
             if self.logged == False:
                 self.name = None
                 return False
             self.sql.execute("SELECT user_id FROM user WHERE username='%s' LIMIT 1"
-                            % (self.name))
+                             % (self.name))
             self.id = self.sql.fetchone()[0]
             self.sql.close()
         except (Exception) as e:
@@ -133,11 +137,11 @@ class User:
         try:
             self.sql.open()
             self.sql.execute("SELECT COUNT(1) FROM user_has_task WHERE fk_task_id='%d' AND fk_user_id='%d'"
-                                    % (task_id, self.id))
+                             % (task_id, self.id))
             if self.sql.fetchone()[0] <= 0:
                 return False
             self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
-                                    % (task_id))
+                             % (task_id))
             task = self.sql.fetchone()
             self.sql.close()
             return task
@@ -151,7 +155,7 @@ class User:
         try:
             self.sql.open()
             self.sql.execute("SELECT * FROM task WHERE user_id='%d'"
-                                    % (self.id))
+                             % (self.id))
             tasks = list(self.sql.fetchall())
             self.sql.close()
             return tasks
@@ -175,8 +179,8 @@ class Task:
         if title == None or begin == None or end == None:
             return False
         try:
-            self.sql.execute("INSERT INTO task (id, title, begin, end, status) VALUES (%d, '%s', '%s', '%s', '%s')"
-                            % (self.id, title, begin, end, status))
+            self.sql.execute("INSERT INTO task (title, begin, end, status) VALUES ('%s', '%s', '%s', '%s')"
+                             % (title, begin, end, status))
             self.sql.cursor.commit()
         except (Exception) as e:
             print(e)
@@ -188,7 +192,7 @@ class Task:
             return False
         try:
             self.sql.execute("DELETE FROM task WHERE task_id=%d"
-                            % (self.id))
+                             % (self.id))
             self.sql.cursor.commit()
         except (Exception) as e:
             print(e)
@@ -209,8 +213,8 @@ class Task:
             if status != None:
                 to_update["status"] = status
             for key, val in to_update:
-                self.sql.execute("UPDATE task SET %s=%s WHERE task_id=%d"
-                                % (key, val, self.id))
+                self.sql.execute("UPDATE task SET %s='%s' WHERE task_id=%d"
+                                 % (key, val, self.id))
             self.sql.cursor.commit()
         except (Exception) as e:
             print(e)
