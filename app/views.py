@@ -5,8 +5,8 @@
 ## views
 ##
 
-from flask import Flask, session, render_template, json
-from app.models import User
+from flask import Flask, request, session, render_template, json
+from app.controller import UserController, TaskController
 from app import app
 
 @app.route('/', methods=['GET'])
@@ -15,15 +15,22 @@ def route_home():
 
 @app.route('/register', methods=['POST'])
 def route_register():
-    return render_template('index.html')
+    username = request.form.get("username")
+    password = request.form.get("password")
+    controller = UserController()
+    return controller.register(username, password)
 
 @app.route('/signin', methods=['POST'])
 def route_signin():
-    return render_template('index.html')
+    username = request.form.get("username")
+    password = request.form.get("password")
+    controller = UserController()
+    return controller.login(username, password)
 
 @app.route('/signout', methods=['POST'])
 def route_signout():
-    return render_template('index.html')
+    controller = UserController()
+    return controller.logout()
 
 @app.route('/user', methods=['GET'])
 def route_view_user():

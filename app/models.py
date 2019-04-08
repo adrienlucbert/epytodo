@@ -72,10 +72,14 @@ class User:
 
     def register(self, username, passwd):
         if self.logged or username == None or passwd == None:
-            return False
+            return 2
         try:
             self.sql.open()
             self.name = username
+            self.sql.execute("SELECT COUNT(1) FROM user WHERE username='%s' AND password='%s'"
+                             % (username, passwd))
+            if self.sql.fetchone()[0] > 0:
+                return 1
             self.sql.execute("INSERT INTO user (username, password) VALUES ('%s', '%s')"
                              % (self.name, passwd))
             self.sql.commit()
@@ -85,11 +89,11 @@ class User:
         except (Exception) as e:
             print("User.register: ")
             print(e)
-            return False
+            return 2
         session["username"] = self.name
         session["id"] = self.id
         session["logged"] = self.logged
-        return True
+        return 0
 
     def login(self, username=None, passwd=None):
         if self.logged or username == None or passwd == None:

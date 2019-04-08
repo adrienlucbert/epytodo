@@ -31,6 +31,19 @@ class UserController(Controller):
     def __init__(self):
         self.user = User(self.sql, session.get("username"), session.get("id"))
 
+    def register(self, username=None, passwd=None):
+        if session.get("logged") == True:
+            return None
+        res = {}
+        status = self.user.register(username, passwd)
+        if status == 0:
+            res["result"] = "account created"
+        elif status == 1:
+            res["error"] = "account already exists"
+        else:
+            return self.internalError()
+        return json.dumps(res)
+
     def login(self, username=None, passwd=None):
         if session.get("logged") == True:   
             status = 0
