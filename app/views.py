@@ -15,15 +15,15 @@ def route_home():
 
 @app.route('/register', methods=['POST'])
 def route_register():
-    username = request.form.get("username")
-    password = request.form.get("password")
+    username = request.json["username"]
+    password = request.json["password"]
     controller = UserController()
     return controller.register(username, password)
 
 @app.route('/signin', methods=['POST'])
 def route_signin():
-    username = request.form.get("username")
-    password = request.form.get("password")
+    username = request.json["username"]
+    password = request.json["password"]
     controller = UserController()
     return controller.login(username, password)
 
@@ -49,19 +49,19 @@ def route_view_task(task_id):
 
 @app.route('/user/task/<int:task_id>', methods=['POST'])
 def route_update_task(task_id):
-    title = request.form.get("title")
-    begin = request.form.get("begin")
-    end = request.form.get("end")
-    status = request.form.get("status")
+    title = request.json.get("title")
+    begin = request.json.get("begin")
+    end = request.json.get("end")
+    status = request.json.get("status")
     controller = TaskController()
     return controller.task.update(task_id, title, begin, end, status)
 
 @app.route('/user/task/add', methods=['POST'])
 def route_task_add():
-    title = request.form.get("title")
-    begin = request.form.get("begin")
-    end = request.form.get("end")
-    status = request.form.get("status")
+    title = request.json.get("title")
+    begin = request.json.get("begin")
+    end = request.json.get("end")
+    status = request.json.get("status")
     controller = TaskController()
     return controller.task.create(title, begin, end, status)
 

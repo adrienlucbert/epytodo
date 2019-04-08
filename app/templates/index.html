@@ -1,11 +1,21 @@
 {% extends "base.html" %}
-{% set page_title = "Accueil" %}
+{% set page_title = "EPyTODO" %}
 
 {% block content %}
-    <h1>Hello!</h1>
-    {% if not session.username %}
-    <p>Please log in</p>
-    {% else %}
-    <p>You are logged as {{ session.username }}!</p>
-    {% endif %}
+    <section id="general">
+        <h2>Please sign in or sign up.</h2>
+    </section>
+    <section id="list">
+        <table>
+            <tr class="tr-static">
+                <th colspan="4" width="100%">Tasks</th>
+            </tr>
+            <tr class="ruler tr-static">
+                <td width="55%"></td>
+                <td width="15%"></td>
+                <td width="15%"></td>
+                <td width="15%"></td>
+            </tr>
+        </table>
+    </section>
 {% endblock %}

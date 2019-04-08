@@ -98,8 +98,10 @@ class User:
         return 0
 
     def login(self, username=None, passwd=None):
-        if self.logged or username == None or passwd == None:
-            return False
+        if self.logged:
+            return 2
+        if username == None or passwd == None:
+            return 1
         try:
             self.sql.open()
             self.name = username

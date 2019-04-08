@@ -1,0 +1,11 @@
+{
+    "Signin": {
+        "username": {"type": "text", "placeholder":"Username"},
+        "password": {"type": "password", "placeholder":"Password"}
+    },
+    "Signup": {
+        "username": {"type": "text", "placeholder":"Username"},
+        "password": {"type": "password", "placeholder":"Password"},
+        "confirm": {"type": "password", "placeholder":"Confirm password"}
+    }
+}
