@@ -32,7 +32,7 @@ class UserController(Controller):
         self.user = User(self.sql, session.get("username"), session.get("id"))
 
     def login(self, username=None, passwd=None):
-        if session.get("logged") == True:
+        if session.get("logged") == True:   
             status = 0
         else:
             status = self.user.login(username, passwd)
@@ -45,9 +45,7 @@ class UserController(Controller):
             return self.internalError()
         return json.dumps(res)
 
-    def signout(self):
-        if session.get("logged") == None or session.get("logged") == False:
-            return self.notLoggedIn()
+    def logout(self):
         res = {}
         status = self.user.logout()
         if status == 0:
