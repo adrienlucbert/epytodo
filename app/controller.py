@@ -11,6 +11,8 @@ from app.models import User, Task, SqlConnect
 class Controller:
     def __init__(self):
         self.sql = SqlConnect()
+        self.user = User(self.sql, session.get("username"), session.get("id"))
+        self.task = Task(self.sql)
 
     def notLoggedIn(self):
         res = {}
@@ -29,10 +31,10 @@ class Controller:
 
 class UserController(Controller):
     def __init__(self):
-        self.user = User(self.sql, session.get("username"), session.get("id"))
+        super().__init__()
 
     def register(self, username=None, passwd=None):
-        if session.get("logged") == True:
+        if self.user.logged == True:
             return None
         res = {}
         status = self.user.register(username, passwd)
@@ -45,7 +47,7 @@ class UserController(Controller):
         return json.dumps(res)
 
     def login(self, username=None, passwd=None):
-        if session.get("logged") == True:   
+        if self.user.logged == True:   
             status = 0
         else:
             status = self.user.login(username, passwd)
@@ -67,7 +69,7 @@ class UserController(Controller):
 
 class TaskController(Controller):
     def __init__(self):
-        self.task = Task(self.sql)
+        super().__init__()
 
     def create(self, title=None, begin=None, end=None, status=None):
         return None

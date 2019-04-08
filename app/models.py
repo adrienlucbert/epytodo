@@ -148,6 +148,13 @@ class User:
             return False
         return True
 
+    def hasTask(self, task_id=None):
+        task = self.getTaskById(task_id)
+        if task == False:
+            return False
+        else:
+            return True
+
     def deleteTaskById(self, task_id):
         task = self.getTaskById(task_id)
         if task == False:
