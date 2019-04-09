@@ -12,6 +12,7 @@ class View {
         this.templates = null;
         this.form = document.querySelector("section#authenticator form");
         this.loadTemplates();
+        document.querySelector("button.add").onclick = null;
         document.querySelector("button.add").onclick = () => {
             self.prompt("Add task");
         };
@@ -37,6 +38,7 @@ class View {
         document.querySelector("#general").classList.remove("active");
         document.querySelector("#list").classList.add("active");
         document.querySelector("header button:first-of-type").innerHTML = "Signout";
+        document.querySelector("header button:first-of-type").onclick = null;
         document.querySelector("header button:first-of-type").onclick = () => {
             self.auth.logout();
         };
@@ -49,11 +51,13 @@ class View {
         document.querySelector("#list").classList.remove("active");
         document.querySelector("#general").classList.add("active");
         document.querySelector("header button:last-of-type").innerHTML = "Signup";
+        document.querySelector("header button:last-of-type").onclick = null;
         document.querySelector("header button:last-of-type").onclick = () => {
             self.prompt("Signup");
         };
         document.querySelector("header button:last-of-type").classList.add("active");
         document.querySelector("header button:first-of-type").innerHTML = "Signin";
+        document.querySelector("header button:first-of-type").onclick = null;
         document.querySelector("header button:first-of-type").onclick = () => {
             self.prompt("Signin");
         };
@@ -169,10 +173,6 @@ class View {
                     self.unprompt();
                 break;
             }
-            if (templateName == "Signin")
-                self.auth.login(self.form.username.value, self.form.password.value);
-            else if (templateName == "Signup")
-                self.auth.register(self.form.username.value, self.form.password.value, self.form.confirm.value);
         };
         document.onkeydown = (e) => {
             if (e.keyCode == 27) {

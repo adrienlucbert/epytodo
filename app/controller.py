@@ -126,6 +126,8 @@ class TaskController(Controller):
         return json.dumps(res)
 
     def convertDateTime(self, date):
+        if date == None or date == "":
+            return None
         format_from = '%Y-%m-%dT%H:%M'
         format_to = '%Y-%m-%d %H:%M'
         return datetime.strptime(date, format_from).strftime(format_to) + ":00"

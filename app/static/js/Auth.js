@@ -48,7 +48,7 @@ class Auth {
         })
         .then(data => data.json())
         .then(json => {
-            self.form.querySelectorAll("input").forEach(field => {
+            self.view.form.querySelectorAll("input").forEach(field => {
                 field.removeAttribute("disabled");
             });
             if (json.result) {
@@ -56,16 +56,16 @@ class Auth {
                 self.view.unprompt();
             } else {
                 console.error(json.error);
-                self.form.querySelectorAll("input").forEach(field => {
+                self.view.form.querySelectorAll("input").forEach(field => {
                     field.classList.add("invalid-input");
                 });
-                self.form.onclick = () => {
-                    self.form.querySelectorAll("input").forEach(field => {
+                self.view.form.onclick = () => {
+                    self.view.form.querySelectorAll("input").forEach(field => {
                         field.classList.remove("invalid-input");
                     });
                 }
                 setTimeout(() => {
-                    self.form.querySelectorAll("input").forEach(field => {
+                    self.view.form.querySelectorAll("input").forEach(field => {
                         field.classList.remove("invalid-input");
                     });
                 }, 10000);
@@ -97,16 +97,16 @@ class Auth {
                 self.view.unprompt();
             } else {
                 console.error(json.error);
-                self.form.querySelectorAll("input").forEach(field => {
+                self.view.form.querySelectorAll("input").forEach(field => {
                     field.classList.add("invalid-input");
                 });
-                self.form.onclick = () => {
-                    self.form.querySelectorAll("input").forEach(field => {
+                self.view.form.onclick = () => {
+                    self.view.form.querySelectorAll("input").forEach(field => {
                         field.classList.remove("invalid-input");
                     });
                 }
                 setTimeout(() => {
-                    self.form.querySelectorAll("input").forEach(field => {
+                    self.view.form.querySelectorAll("input").forEach(field => {
                         field.classList.remove("invalid-input");
                     });
                 }, 10000);
