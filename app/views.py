@@ -49,23 +49,23 @@ def route_view_task(task_id):
 
 @app.route('/user/task/<int:task_id>', methods=['POST'])
 def route_update_task(task_id):
-    title = request.json.get("title")
-    begin = request.json.get("begin")
-    end = request.json.get("end")
-    status = request.json.get("status")
+    title = request.json["title"]
+    begin = request.json["begin"]
+    end = request.json["end"]
+    status = request.json["status"]
     controller = TaskController()
-    return controller.task.update(task_id, title, begin, end, status)
+    return controller.update(task_id, title, begin, end, status)
 
 @app.route('/user/task/add', methods=['POST'])
 def route_task_add():
-    title = request.json.get("title")
-    begin = request.json.get("begin")
-    end = request.json.get("end")
-    status = request.json.get("status")
+    title = request.json["title"]
+    begin = request.json["begin"]
+    end = request.json["end"]
+    status = request.json["status"]
     controller = TaskController()
-    return controller.task.create(title, begin, end, status)
+    return controller.create(title, begin, end, status)
 
 @app.route('/user/task/del/<int:task_id>', methods=['POST'])
 def route_task_del(task_id):
     controller = TaskController()
-    return controller.task.delete(task_id)
+    return controller.delete(task_id)

@@ -221,7 +221,7 @@ class User:
                              % (self.id))
             tasks_ids = list(self.sql.fetchall())
             for task_id in tasks_ids:
-                self.sql.execute("SELECT * FROM task WHERE task_id='%d' LIMIT 1"
+                self.sql.execute("SELECT * FROM task WHERE task_id='%d' ORDER BY task_id LIMIT 1"
                     % (task_id["fk_task_id"]))
                 task = self.sql.fetchone()
                 tasks[task["task_id"]] = {}
@@ -250,8 +250,8 @@ class Task:
             self.status = "not started"
     
     def create(self, title=None, begin=None, end=None, status=None):
-        if title == None or begin == None or end == None:
-            return False
+        if title == None or begin == None or end == None or status == None:
+            return 2
         try:
             if status == None:
                 status = "not started"
@@ -261,24 +261,29 @@ class Task:
             self.sql.commit()
             self.sql.execute("SELECT LAST_INSERT_ID()")
             self.id = self.sql.fetchone()["LAST_INSERT_ID()"]
+            self.sql.execute("INSERT INTO user_has_task (fk_user_id, fk_task_id) VALUES (%d, %d)"
+                             % (session["id"], self.id))
+            self.sql.commit()
         except (Exception) as e:
             print("Task.create: ")
             print(e)
-            return False
-        return True
+            return 2
+        return 0
 
-    def delete(self, task_id):
+    def delete(self, task_id=None):
         if task_id == None:
-            return False
+            return 1
         try:
+            self.sql.execute("DELETE FROM user_has_task WHERE fk_task_id=%d"
+                             % (task_id))
             self.sql.execute("DELETE FROM task WHERE task_id=%d"
                              % (task_id))
             self.sql.commit()
         except (Exception) as e:
             print("Task.delete: ")
             print(e)
-            return False
-        return True
+            return 2
+        return 0
 
     def update(self, task_id, title=None, begin=None, end=None, status=None):
         if task_id == None:
@@ -293,7 +298,7 @@ class Task:
                 to_update["end"] = end
             if status != None:
                 to_update["status"] = status
-            for key, val in to_update:
+            for key, val in to_update.items():
                 self.sql.execute("UPDATE task SET %s='%s' WHERE task_id=%d"
                                  % (key, val, task_id))
             self.sql.commit()

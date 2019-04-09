@@ -7,6 +7,7 @@
 
 from flask import Flask, session, render_template, json
 from app.models import User, Task, SqlConnect
+from datetime import datetime
 
 class Controller:
     def __init__(self):
@@ -98,12 +99,15 @@ class TaskController(Controller):
         if self.user.logged == False:
             return self.notLoggedIn()
         else:
-            ret = self.task.create(title, begin, end, status)
-        if ret == False:
+            begin = self.convertDateTime(begin)
+            end = self.convertDateTime(end)
+            status = self.task.create(title, begin, end, status)
+        if status == 0:
+            res = {}
+            res['result'] = "new task added"
+            return json.dumps(res)
+        else:
             return self.internalError()
-        res = {}
-        res['result'] = "new task added"
-        return json.dumps(res)
 
     def delete(self, task_id=None):
         if self.user.logged == False:
@@ -112,11 +116,19 @@ class TaskController(Controller):
             return self.taskIdInvalid()
         else:
             status = self.task.delete(task_id)
-        if status == False:
+        if status == 0:
+            res = {}
+            res['result'] = "task deleted"
+        elif status == 1:
             return self.taskIdInvalid()
-        res = {}
-        res['result'] = "task deleted"
+        else:
+            return self.internalError()
         return json.dumps(res)
+
+    def convertDateTime(self, date):
+        format_from = '%Y-%m-%dT%H:%M'
+        format_to = '%Y-%m-%d %H:%M'
+        return datetime.strptime(date, format_from).strftime(format_to) + ":00"
 
     def update(self, task_id=None, title=None, begin=None, end=None, status=None):
         if self.user.logged == False:
@@ -124,7 +136,9 @@ class TaskController(Controller):
         elif self.user.hasTask(task_id) == False:
             return self.taskIdInvalid()
         else:
-            status = self.task.update(title, begin, end, status)
+            begin = self.convertDateTime(begin)
+            end = self.convertDateTime(end)
+            status = self.task.update(task_id, title, begin, end, status)
         if status == False:
             return self.internalError()
         res = {}

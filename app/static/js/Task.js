@@ -1,5 +1,6 @@
 class Task {
-    constructor(id, title, begin, end, status) {
+    constructor(view, id=null, title=null, begin=null, end=null, status=null) {
+        this.view = view;
         this.id = id;
         this.title = title;
         this.begin = begin;
@@ -10,8 +11,8 @@ class Task {
             begin: null,
             end: null,
             status: null,
-            delete: null,
-            update: null
+            update: null,
+            delete: null
         };
     }
 
@@ -33,56 +34,136 @@ class Task {
         this.html.end = document.createElement("td");
         this.html.end.innerHTML = this.end;
         tr.appendChild(this.html.end);
-        // let actionTd = document.createElement("td");
-        // tr.appendChild(actionTd);
-        // this.html.action = document.createElement("button");
-        // this.html.action.className = "start";
-        // this.html.action.innerHTML = "START";
-        // this.html.action.onclick = () => {
-        //     self.start();
-        // };
-        // actionTd.appendChild(this.html.action);
-        // let restartTd = document.createElement("td");
-        // tr.appendChild(restartTd);
-        // let restart = document.createElement("button");
-        // restartTd.appendChild(restart);
-        // restart.className = "restart";
-        // restart.innerHTML = "RESTART";
-        // restart.onclick = () => {
-        //     self.restart();
-        // };
+        let updateTd = document.createElement("td");
+        tr.appendChild(updateTd);
+        this.html.update = document.createElement("button");
+        this.html.update.className = "update";
+        this.html.update.innerHTML = "Update";
+        this.html.update.onclick = () => {
+            let data = {
+                id:self.id,
+                title:self.title,
+                begin:new Date(self.begin).toISOString().slice(0,16),
+                end:new Date(self.end).toISOString().slice(0,16),
+                status:self.status
+            };
+            self.view.prompt("Update task", data);
+        };
+        updateTd.appendChild(this.html.update);
+        let deleteTd = document.createElement("td");
+        tr.appendChild(deleteTd);
+        this.html.delete = document.createElement("button");
+        this.html.delete.className = "delete";
+        this.html.delete.innerHTML = "Delete";
+        this.html.delete.onclick = () => {
+            self.delete();
+        };
+        deleteTd.appendChild(this.html.delete);
     }
 
-    update() {
+    delete() {
         let self = this;
-        fetch("app/back/serviceStatus.php", {
-            method: "POST",
-            body: self.formData
+        fetch("/user/task/del/" + self.id, {
+            method: "POST"
         })
-        .then(data => data.text())
-        .then(text => self.status = text)
-        .catch(error => console.log(error));
+        .then(data => data.json())
+        .then(json => {
+            if (json.result) {
+                view.loadTasks();
+            } else {
+                console.error(json.error);
+            }
+        })
+        .catch(error => console.error(error));
+    }
 
-        if (this.status == this.html.status.className)
+    create(title=null, begin=null, end=null, status=null) {
+        let self = this;
+        let formData = {
+            "title":title,
+            "begin":begin,
+            "end":end,
+            "status":status
+        };
+        fetch("/user/task/add", {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: "POST",
+            body: JSON.stringify(formData)
+        })
+        .then(data => data.json())
+        .then(json => {
+            self.view.form.querySelectorAll("input, select").forEach(field => {
+                field.removeAttribute("disabled");
+            });
+            if (json.result) {
+                self.view.unprompt();
+                self.view.loadTasks();
+            } else {
+                console.error(json.error);
+                self.view.form.querySelectorAll("input, select").forEach(field => {
+                    field.classList.add("invalid-input");
+                });
+                self.view.form.onclick = () => {
+                    self.view.form.querySelectorAll("input, select").forEach(field => {
+                        field.classList.remove("invalid-input");
+                    });
+                }
+                setTimeout(() => {
+                    self.view.form.querySelectorAll("input, select").forEach(field => {
+                        field.classList.remove("invalid-input");
+                    });
+                }, 10000);
+            }
+        })
+        .catch(error => console.error(error));
+    }
+
+    update(id=null, title=null, begin=null, end=null, status=null) {
+        let self = this;
+        if (id == null) {
+            console.error("Invalid task id");
             return;
-        if (this.status == "online") {
-            this.html.log.innerHTML = "No issue";
-            this.html.status.className = this.status;
-            this.html.status.innerHTML = "Online";
-            this.html.action.className = "stop";
-            this.html.action.innerHTML = "STOP";
-            this.html.action.onclick = () => {
-                self.stop();
-            };
-        } else {
-            this.html.log.innerHTML = "Service not running";
-            this.html.status.className = this.status;
-            this.html.status.innerHTML = "Offline";
-            this.html.action.className = "start";
-            this.html.action.innerHTML = "START";
-            this.html.action.onclick = () => {
-                self.start();
-            };
         }
+        let formData = {
+            "title":title,
+            "begin":begin,
+            "end":end,
+            "status":status
+        };
+        fetch("/user/task/" + id, {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: "POST",
+            body: JSON.stringify(formData)
+        })
+        .then(data => data.json())
+        .then(json => {
+            self.view.form.querySelectorAll("input, select").forEach(field => {
+                field.removeAttribute("disabled");
+            });
+            if (json.result) {
+                self.view.unprompt();
+                self.view.loadTasks();
+            } else {
+                console.error(json.error);
+                self.view.form.querySelectorAll("input, select").forEach(field => {
+                    field.classList.add("invalid-input");
+                });
+                self.view.form.onclick = () => {
+                    self.view.form.querySelectorAll("input, select").forEach(field => {
+                        field.classList.remove("invalid-input");
+                    });
+                }
+                setTimeout(() => {
+                    self.view.form.querySelectorAll("input, select").forEach(field => {
+                        field.classList.remove("invalid-input");
+                    });
+                }, 10000);
+            }
+        })
+        .catch(error => console.error(error));
     }
 }

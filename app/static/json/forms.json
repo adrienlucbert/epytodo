@@ -7,5 +7,18 @@
         "username": {"type": "text", "placeholder":"Username"},
         "password": {"type": "password", "placeholder":"Password"},
         "confirm": {"type": "password", "placeholder":"Confirm password"}
+    },
+    "Add task": {
+        "title": {"type": "text", "placeholder":"Title"},
+        "begin": {"type": "datetime-local"},
+        "end": {"type": "datetime-local"},
+        "status": {"type": "select", "options": ["not started", "in progress", "done"]}
+    },
+    "Update task": {
+        "id": {"type":"hidden", "datavalue":"id"},
+        "title": {"type": "text", "placeholder":"Title", "datavalue":"title"},
+        "begin": {"type": "datetime-local", "datavalue":"begin"},
+        "end": {"type": "datetime-local", "datavalue":"end"},
+        "status": {"type": "select", "options": ["not started", "in progress", "done"], "datavalue":"status"}
     }
 }
